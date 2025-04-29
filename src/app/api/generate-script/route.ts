@@ -21,7 +21,7 @@ Each script should match the tone provided:
 2️⃣ **Tone: ${tones[1]}**  
 3️⃣ **Tone: ${tones[2]}**  
 
-Ensure the script follows a **natural, conversational flow** without using explicit headers like 'Hook', 'Problem', 'Solution', etc.  
+Ensure the script follows a **natural, conversational flow** without using explicit headers like "Hook", "Problem", "Solution", etc.  
 Product Description: \"${product_description}\"  
 
 Provide exactly 3 scripts in this JSON format:  
@@ -32,7 +32,7 @@ Provide exactly 3 scripts in this JSON format:
 ]  
 
 Each script should reflect the specified tone **strongly and consistently**.  
-If a script is too short, expand naturally with relevant details. If it's too long, condense without losing meaning.  
+If a script is too short, expand naturally with relevant details. If it is too long, condense without losing meaning.  
 Make sure all scripts follow the **exact** ${word_count}-word requirement.`;
 
     const response = await axios.post(
