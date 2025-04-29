@@ -7,10 +7,10 @@ const features = [
     title: "AI-Powered Script Generation",
     description: "Generate high-converting ad scripts tailored to your product in seconds."
   },
-  {
-    title: "Drag & Drop Editor",
-    description: "Easily customize templates with your brand assets and messaging."
-  },
+  // {
+  //   title: "Drag & Drop Editor",
+  //   description: "Easily customize templates with your brand assets and messaging."
+  // },
   {
     title: "Real Creator Network",
     description: "Access our network of vetted UGC creators or upload your own content."
@@ -19,14 +19,14 @@ const features = [
     title: "Performance Analytics",
     description: "Track which ads perform best and optimize your campaigns."
   },
-  {
-    title: "Client Management",
-    description: "Organize and manage multiple clients with separate workspaces."
-  },
-  {
-    title: "White Label Options",
-    description: "Brand the platform as your own for a professional client experience."
-  }
+  // {
+  //   title: "Client Management",
+  //   description: "Organize and manage multiple clients with separate workspaces."
+  // },
+  // {
+  //   title: "White Label Options",
+  //   description: "Brand the platform as your own for a professional client experience."
+  // }
 ];
 
 export function Features() {

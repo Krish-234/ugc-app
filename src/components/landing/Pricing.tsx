@@ -5,7 +5,7 @@ import Link from "next/link";
 const plans = [
   {
     name: "Starter",
-    price: "$49",
+    price: "₹49",
     period: "/month",
     description: "Perfect for individuals and small teams",
     features: [
@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: "Professional",
-    price: "$149",
+    price: "₹149",
     period: "/month",
     description: "For growing agencies and brands",
     features: [
