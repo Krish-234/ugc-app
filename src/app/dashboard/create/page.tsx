@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -24,7 +25,6 @@ import {
 import { PointsBalance } from "@/components/dashboard/PointsBalance";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
-import Error from "next/error";
 
 const formSchema = z.object({
   brandName: z.string().min(2, {
@@ -44,10 +44,18 @@ const formSchema = z.object({
 });
 
 export default function CreateAdPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CreateAdPageContent />
+    </Suspense>
+  );
+}
+
+function CreateAdPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const adType = searchParams.get("type");
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,16 +71,14 @@ export default function CreateAdPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       // Handle ad creation logic here
-      // Deduct points, etc.
       
       toast({
         title: "Ad creation started!",
         description: "Your UGC ad is being generated with your specifications.",
       });
-      
+
       router.push("/dashboard");
-    } catch (error: any)
-     {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
@@ -92,7 +98,7 @@ export default function CreateAdPage() {
         </div>
         <PointsBalance points={100} />
       </div>
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -109,7 +115,7 @@ export default function CreateAdPage() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="productName"
@@ -124,7 +130,7 @@ export default function CreateAdPage() {
               )}
             />
           </div>
-          
+
           <FormField
             control={form.control}
             name="targetAudience"
@@ -138,7 +144,7 @@ export default function CreateAdPage() {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="keyMessage"
@@ -156,7 +162,7 @@ export default function CreateAdPage() {
               </FormItem>
             )}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -180,7 +186,7 @@ export default function CreateAdPage() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="style"
@@ -205,7 +211,7 @@ export default function CreateAdPage() {
               )}
             />
           </div>
-          
+
           <div className="flex justify-between items-center pt-6 border-t">
             <Button variant="outline" type="button" onClick={() => router.back()}>
               Back
