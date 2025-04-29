@@ -56,12 +56,21 @@ Make sure all scripts follow the **exact** ${word_count}-word requirement.`;
     );
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
-    console.error(error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error:", error.response?.data);
+      return NextResponse.json(
+        { message: "Error generating script", error: error.response?.data },
+        { status: 500 }
+      );
+    }
+  
+    console.error("Unexpected error:", error);
     return NextResponse.json(
-      { message: "Error generating script", error: error.response?.data },
+      { message: "Unexpected error" },
       { status: 500 }
     );
   }
+  
 }
 
