@@ -135,12 +135,13 @@ export function AdCreationForm({
         selected_tones: selectedTones,
       });
 
-      const rawData = response.data.choices?.[0]?.message?.content;
+      console.log(response.data);
+      const rawData = response.data.scripts;
       if (!rawData) {
         throw new Error("Received empty response from AI.");
       }
 
-      const scripts: string[] = JSON.parse(rawData).map(
+      const scripts: string[] = rawData.map(
         (item: { script: string }) => item.script
       );
 
@@ -156,20 +157,38 @@ export function AdCreationForm({
     }
   };
 
+  // Modify your handleSubmit function in AdCreationForm.tsx
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (!selectedScript) {
         setError("Please select or generate a script first");
         return;
       }
-
-      // Submit ad creation request
+  
+      const response = await fetch('/api/ads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData: values,
+          selectedScript,
+          serviceType
+        })
+      })
+  
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit ad");
+      }
+  
       toast({
-        title: "Ad creation started!",
-        description: "Your ad is being generated with your specifications.",
+        title: "Ad submitted successfully!",
+        description: "Your ad is being processed and will be ready in 7 days.",
       });
-
-      router.push("/dashboard");
+  
+      router.push("/dashboard/history");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -200,7 +219,13 @@ export function AdCreationForm({
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit((values) => {
+            console.log("Form valid. Submitting with values:", values);
+            handleSubmit(values);
+          })}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
@@ -257,9 +282,10 @@ export function AdCreationForm({
                 <FormLabel>Product Image</FormLabel>
                 <FormControl>
                   <FileUpload
-                    endpoint="imageUpload"
+                    endpoint="/api/upload?category=image"
                     value={field.value}
                     onChange={field.onChange}
+                    accept="image/*"
                   />
                 </FormControl>
                 <FormMessage />
@@ -267,87 +293,87 @@ export function AdCreationForm({
             )}
           />
 
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="avatar"
-            render={({ field }) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="avatar"
+              render={({ field }) => (
                 <FormItem>
-                <FormLabel>UGC Creator Avatar</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                      >
-                        {field.value ? (
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={field.value} />
-                              <AvatarFallback>UGC</AvatarFallback>
-                            </Avatar>
-                            <span>Change Avatar</span>
-                          </div>
-                        ) : (
-                          "Select Avatar"
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80">
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          "https://randomuser.me/api/portraits/women/44.jpg",
-                          "https://randomuser.me/api/portraits/men/32.jpg",
-                          "https://randomuser.me/api/portraits/women/68.jpg",
-                          "https://randomuser.me/api/portraits/men/75.jpg",
-                          "https://randomuser.me/api/portraits/women/21.jpg",
-                          "https://randomuser.me/api/portraits/men/22.jpg",
-                          "https://randomuser.me/api/portraits/women/63.jpg",
-                          "https://randomuser.me/api/portraits/men/43.jpg",
-                        ].map((avatar) => (
-                          <button
-                            type="button"
-                            key={avatar}
-                            className={`rounded-full overflow-hidden border-2 ${
-                              field.value === avatar
-                                ? "border-primary"
-                                : "border-transparent"
-                            }`}
-                            onClick={() => field.onChange(avatar)}
-                          >
-                            <Avatar className="h-16 w-16">
-                              <AvatarImage src={avatar} />
-                              <AvatarFallback>UGC</AvatarFallback>
-                            </Avatar>
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormLabel>UGC Creator Avatar</FormLabel>
+                  <FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                        >
+                          {field.value ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={field.value} />
+                                <AvatarFallback>UGC</AvatarFallback>
+                              </Avatar>
+                              <span>Change Avatar</span>
+                            </div>
+                          ) : (
+                            "Select Avatar"
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="grid grid-cols-4 gap-2">
+                          {[
+                            "https://randomuser.me/api/portraits/women/44.jpg",
+                            "https://randomuser.me/api/portraits/men/32.jpg",
+                            "https://randomuser.me/api/portraits/women/68.jpg",
+                            "https://randomuser.me/api/portraits/men/75.jpg",
+                            "https://randomuser.me/api/portraits/women/21.jpg",
+                            "https://randomuser.me/api/portraits/men/22.jpg",
+                            "https://randomuser.me/api/portraits/women/63.jpg",
+                            "https://randomuser.me/api/portraits/men/43.jpg",
+                          ].map((avatar) => (
+                            <button
+                              type="button"
+                              key={avatar}
+                              className={`rounded-full overflow-hidden border-2 ${
+                                field.value === avatar
+                                  ? "border-primary"
+                                  : "border-transparent"
+                              }`}
+                              onClick={() => field.onChange(avatar)}
+                            >
+                              <Avatar className="h-16 w-16">
+                                <AvatarImage src={avatar} />
+                                <AvatarFallback>UGC</AvatarFallback>
+                              </Avatar>
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="targetAudience"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Target Audience</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., Women aged 25-35 interested in fitness"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-    </div>
+            <FormField
+              control={form.control}
+              name="targetAudience"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Target Audience</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Women aged 25-35 interested in fitness"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
@@ -508,7 +534,9 @@ export function AdCreationForm({
             >
               Back
             </Button>
-            <Button type="submit">Create Ad (30 points)</Button>
+            <Button type="submit" className="cursor-pointer">
+              Create Ad (30 points)
+            </Button>
           </div>
         </form>
       </Form>

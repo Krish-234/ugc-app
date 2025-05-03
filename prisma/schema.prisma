@@ -22,19 +22,52 @@ model User {
   credits       Int       @default(100)
   role          String    @default("USER")
   ads           Ad[]
+  editingRequest EditingRequest[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
 
 model Ad {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  avatar      String
-  brandName   String
-  description String
-  status      String   @default("PENDING")
-  creditsUsed Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  serviceType     String
+  avatar          String
+  brandName       String
+  productName     String
+  productImage    String
+  description     String
+  targetAudience  String
+  videoDuration   String
+  selectedTones   String[]
+  script          String?
+  websiteLink     String?
+  referenceLink   String?
+  status          String   @default("PENDING")
+  progress        Int      @default(0)
+  estimatedReady  DateTime
+  creditsUsed     Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  completedFileUrl String? // Add this line
+}
+
+model EditingRequest {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  projectName     String
+  rawFootageUrl   String
+  editingStyle    String
+  instructions    String
+  referenceLinks  String?
+  desiredLength   String
+  customLength    String?
+  status          String   @default("PENDING")
+  progress        Int      @default(0)
+  estimatedReady  DateTime
+  creditsUsed     Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  completedFileUrl String?
 }

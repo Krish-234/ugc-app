@@ -16,7 +16,7 @@ const navItems = [
     icon: Film,
   },
   {
-    name: "Ad History",
+    name: "History",
     href: "/dashboard/history",
     icon: History,
   },

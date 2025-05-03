@@ -30,9 +30,13 @@ const formSchema = z.object({
   instructions: z.string().min(10, {
     message: "Please provide detailed instructions (at least 10 characters).",
   }),
-  referenceLinks: z.string().url({
-    message: "Please enter a valid URL.",
-  }).optional().or(z.literal("")),
+  referenceLinks: z
+    .string()
+    .url({
+      message: "Please enter a valid URL.",
+    })
+    .optional()
+    .or(z.literal("")),
   desiredLength: z.enum(["15", "30", "60", "custom"]),
   customLength: z.string().optional(),
 });
@@ -56,31 +60,47 @@ export function VideoEditingForm() {
 
   const desiredLength = form.watch("desiredLength");
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  // In your VideoEditingForm.tsx
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Handle video editing submission logic here
-      // Deduct points, process the request, etc.
-      
+      const response = await fetch('/api/editing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData: values
+        }),
+      })
+  
+      const data = await response.json()
+  
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit editing request')
+      }
+  
       toast({
-        title: "Video editing request submitted!",
-        description: "Your footage is being processed by our professional editors.",
-      });
-      
-      router.push("/dashboard");
+        title: 'Editing request submitted!',
+        description: 'Your video is being processed and will be ready in 7 days.',
+      })
+  
+      router.push('/dashboard/history')
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: 'Error',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     }
   }
-
+  
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Professional Video Editing</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            Professional Video Editing
+          </h1>
           <p className="text-muted-foreground">
             Upload your raw footage and let our editors work their magic
           </p>
@@ -89,7 +109,7 @@ export function VideoEditingForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="projectName"
@@ -112,9 +132,10 @@ export function VideoEditingForm() {
                 <FormLabel>Raw Footage</FormLabel>
                 <FormControl>
                   <FileUpload
-                    endpoint="videoUpload"
+                    endpoint="/api/upload?category=video"
                     value={field.value}
                     onChange={field.onChange}
+                    accept="video/*"
                   />
                 </FormControl>
                 <FormMessage />
@@ -130,20 +151,22 @@ export function VideoEditingForm() {
                 <FormLabel>Editing Style</FormLabel>
                 <FormControl>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {["dynamic", "cinematic", "minimalist", "trendy"].map((style) => (
-                      <button
-                        type="button"
-                        key={style}
-                        className={`p-2 border rounded-md text-sm ${
-                          field.value === style
-                            ? "border-primary bg-primary/10"
-                            : "hover:bg-accent"
-                        }`}
-                        onClick={() => field.onChange(style)}
-                      >
-                        {style.charAt(0).toUpperCase() + style.slice(1)}
-                      </button>
-                    ))}
+                    {["dynamic", "cinematic", "minimalist", "trendy"].map(
+                      (style) => (
+                        <button
+                          type="button"
+                          key={style}
+                          className={`p-2 border rounded-md text-sm ${
+                            field.value === style
+                              ? "border-primary bg-primary/10"
+                              : "hover:bg-accent"
+                          }`}
+                          onClick={() => field.onChange(style)}
+                        >
+                          {style.charAt(0).toUpperCase() + style.slice(1)}
+                        </button>
+                      )
+                    )}
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -231,7 +254,11 @@ export function VideoEditingForm() {
           </div>
 
           <div className="flex justify-between items-center pt-6 border-t">
-            <Button variant="outline" type="button" onClick={() => router.back()}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => router.back()}
+            >
               Back
             </Button>
             <Button type="submit">
