@@ -8,6 +8,7 @@ const services = [
     description: "Create authentic user-generated style video ads",
     points: 30,
     icon: "🎥",
+    formComponent: "UgcVideoForm",
   },
   {
     id: "product-showcase",
@@ -15,6 +16,7 @@ const services = [
     description: "Highlight product features with professional editing",
     points: 25,
     icon: "📦",
+    formComponent: "ProductShowcaseForm",
   },
   {
     id: "testimonial-ad",
@@ -22,6 +24,7 @@ const services = [
     description: "Turn customer testimonials into compelling ads",
     points: 20,
     icon: "💬",
+    formComponent: "TestimonialAdForm",
   },
   {
     id: "comparison-ad",
@@ -29,6 +32,15 @@ const services = [
     description: "Show your product vs competitors",
     points: 35,
     icon: "⚖️",
+    formComponent: "ComparisonAdForm",
+  },
+  {
+    id: "video-editing",
+    title: "Video Editing",
+    description: "Professional editing for your raw footage",
+    points: 40,
+    icon: "✂️",
+    formComponent: "VideoEditingForm",
   },
 ];
 
@@ -42,7 +54,7 @@ export default function DashboardPage() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((service) => (
           <ServiceCard key={service.id} service={service} />
         ))}
