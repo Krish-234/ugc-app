@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,6 +28,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 const formSchema = z.object({
   brandName: z.string().min(2, {
@@ -49,6 +50,9 @@ const formSchema = z.object({
   referenceLink: z.string().url({
     message: "Please enter a valid URL.",
   }).optional().or(z.literal("")),
+  avatarId: z.string().min(1, {
+    message: "Please select an avatar.",
+  }),
 });
 
 const tones = [
@@ -62,13 +66,50 @@ const tones = [
   "Just Summary Tone",
 ];
 
+const avatarOptions = [
+  {
+    id: "avatar1",
+    name: "Tech Entrepreneur",
+    image: "https://randomuser.me/api/portraits/women/44.jpg",
+    description: "Professional yet approachable for tech products"
+  },
+  {
+    id: "avatar2",
+    name: "Fitness Influencer",
+    image: "https://randomuser.me/api/portraits/men/32.jpg",
+    description: "Energetic and motivational for health products"
+  },
+  {
+    id: "avatar3",
+    name: "Friendly Mom",
+    image: "https://randomuser.me/api/portraits/women/68.jpg",
+    description: "Relatable for household and family products"
+  },
+  {
+    id: "avatar4",
+    name: "Young Professional",
+    image: "https://randomuser.me/api/portraits/men/22.jpg",
+    description: "Modern and stylish for lifestyle products"
+  },
+  {
+    id: "avatar5",
+    name: "Beauty Guru",
+    image: "https://randomuser.me/api/portraits/women/65.jpg",
+    description: "Trendy and knowledgeable for beauty products"
+  },
+  {
+    id: "avatar6",
+    name: "Outdoor Enthusiast",
+    image: "https://randomuser.me/api/portraits/men/75.jpg",
+    description: "Adventurous for outdoor and sports products"
+  }
+];
+
 export default function CreateAdPage() {
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
   const [generatedScripts, setGeneratedScripts] = useState<string[]>([]);
   const [selectedScript, setSelectedScript] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const adType = searchParams.get("type");
@@ -83,6 +124,7 @@ export default function CreateAdPage() {
       targetAudience: "",
       websiteLink: "",
       referenceLink: "",
+      avatarId: "",
     },
   });
 
@@ -96,22 +138,10 @@ export default function CreateAdPage() {
     setSelectedTones(selectedTones.filter(tone => tone !== toneToRemove));
   };
 
-const handleGenerateScripts = async () => {
-  if (selectedTones.length !== 3) {
-    setError("Please select exactly 3 tones");
-    return;
-  }
-
-  const values = form.getValues();
-  if (!values.productName || !values.productDescription) {
-    setError("Product name and description are required");
-    return;
-  }
-
-  setLoading(true);
-  setError(null);
-
-  try {
+  const handleGenerateScripts = async () => {
+    setLoading(true);
+    
+    const values = form.getValues();
     const response = await axios.post("/api/generate-script", {
       product_name: values.productName,
       product_description: values.productDescription,
@@ -120,52 +150,18 @@ const handleGenerateScripts = async () => {
     });
 
     const rawData = response.data.scripts;
-    console.log(rawData);
-
-    if (!rawData) {
-      throw new Error("Received empty response from AI.");
-    }
-
-    const scripts: string[] = rawData.map(
-      (item: { script: string }) => item.script
-    );
+    const scripts: string[] = rawData.map((item: { script: string }) => item.script);
+    setGeneratedScripts(scripts);
     
-
-    if (scripts && scripts.length > 0) {
-      setGeneratedScripts(scripts);
-    } else {
-      setError("No scripts were generated");
-    }
-  } catch (err) {
-    setError(err instanceof Error ? err.message : String(err));
-  } finally {
     setLoading(false);
-  }
-};
+  };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (!selectedScript) {
-        setError("Please select or generate a script first");
-        return;
-      }
-
-      // Deduct points and submit the ad creation request
-      // You would typically call your API here
-      
-      toast({
-        title: "Ad creation started!",
-        description: "Your UGC ad is being generated with your specifications.",
-      });
-
-      router.push("/dashboard");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "Ad creation started!",
+      description: "Your UGC ad is being generated with your specifications.",
+    });
+    router.push("/dashboard");
   };
 
   return (
@@ -284,6 +280,46 @@ const handleGenerateScripts = async () => {
           </div>
 
           <div>
+            <FormLabel>Select UGC Creator Avatar</FormLabel>
+            <p className="text-sm text-muted-foreground mb-4">
+              Choose the persona that best represents your target audience
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {avatarOptions.map((avatar) => (
+                <div
+                  key={avatar.id}
+                  className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                    form.watch("avatarId") === avatar.id
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "hover:border-gray-300"
+                  }`}
+                  onClick={() => form.setValue("avatarId", avatar.id)}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="relative h-12 w-12 rounded-full overflow-hidden">
+                      <Image
+                        src={avatar.image}
+                        alt={avatar.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">{avatar.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {avatar.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <FormMessage>
+              {form.formState.errors.avatarId?.message}
+            </FormMessage>
+          </div>
+
+          <div>
             <FormLabel>Select 3 Tones</FormLabel>
             <div className="flex flex-wrap gap-2 mt-2">
               {tones.map((tone) => (
@@ -315,11 +351,6 @@ const handleGenerateScripts = async () => {
                 </div>
               </div>
             )}
-            {selectedTones.length !== 3 && selectedTones.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Select {3 - selectedTones.length} more tone(s)
-              </p>
-            )}
           </div>
 
           <FormField
@@ -348,8 +379,6 @@ const handleGenerateScripts = async () => {
                 {loading ? "Generating..." : "Generate Scripts"}
               </Button>
             </div>
-
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
 
             {generatedScripts.length > 0 && (
               <div className="space-y-4">
@@ -386,7 +415,7 @@ const handleGenerateScripts = async () => {
             <Button variant="outline" type="button" onClick={() => router.back()}>
               Back
             </Button>
-            <Button type="submit" disabled={!selectedScript}>
+            <Button type="submit" disabled={!selectedScript || !form.watch("avatarId")}>
               Create Ad (30 points)
             </Button>
           </div>
