@@ -11,6 +11,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Download } from "lucide-react";
+import { toast } from "@/hooks/use-toast"; // Add this import
 
 // Interfaces
 interface Ad {
@@ -22,6 +23,7 @@ interface Ad {
   progress: number;
   estimatedReady: Date;
   createdAt: Date;
+  completedFileUrl: string | null;
 }
 
 interface EditingRequest {
@@ -58,6 +60,11 @@ export default function HistoryPage() {
       }
     } catch (err) {
       console.error("Error fetching data:", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch your history",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -68,7 +75,26 @@ export default function HistoryPage() {
   }, []);
 
   const handleDownload = (url: string | null) => {
-    if (url) window.open(url, "_blank");
+    if (!url) {
+      toast({
+        title: "Error",
+        description: "No file available for download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement("a");
+    link.href = url;
+
+    // Extract filename from URL
+    const filename = url.split("/").pop() || "download";
+    link.download = filename;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -76,7 +102,9 @@ export default function HistoryPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Your Content History</h1>
         <Button variant="outline" onClick={fetchData} disabled={loading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -89,7 +117,9 @@ export default function HistoryPage() {
           <section className="mb-10">
             <h2 className="text-xl font-semibold mb-4">Editing Requests</h2>
             {editingRequests.length === 0 ? (
-              <p className="text-muted-foreground">You haven't submitted any editing requests yet.</p>
+              <p className="text-muted-foreground">
+                You haven't submitted any editing requests yet.
+              </p>
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {editingRequests.map((req) => (
@@ -99,16 +129,19 @@ export default function HistoryPage() {
                         <div>
                           <CardTitle>{req.projectName}</CardTitle>
                           <CardDescription>
-                            Created on {new Date(req.createdAt).toLocaleDateString()}
+                            Created on{" "}
+                            {new Date(req.createdAt).toLocaleDateString()}
                           </CardDescription>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          req.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
-                            : req.status === "FAILED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            req.status === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : req.status === "FAILED"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
                           {req.status}
                         </span>
                       </div>
@@ -117,16 +150,25 @@ export default function HistoryPage() {
                       <div className="space-y-4">
                         <div>
                           <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">Progress</span>
-                            <span className="text-sm text-muted-foreground">{req.progress}%</span>
+                            <span className="text-sm font-medium">
+                              Progress
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {req.progress}%
+                            </span>
                           </div>
                           <Progress value={req.progress} />
                         </div>
                         <div className="text-sm">
-                          <p>Estimated ready: {new Date(req.estimatedReady).toLocaleDateString()}</p>
+                          <p>
+                            Estimated ready:{" "}
+                            {new Date(req.estimatedReady).toLocaleDateString()}
+                          </p>
                         </div>
                         {req.status === "COMPLETED" && req.completedFileUrl && (
-                          <Button onClick={() => handleDownload(req.completedFileUrl)}>
+                          <Button
+                            onClick={() => handleDownload(req.completedFileUrl)}
+                          >
                             <Download className="mr-2 h-4 w-4" />
                             Download Edited Video
                           </Button>
@@ -143,7 +185,9 @@ export default function HistoryPage() {
           <section>
             <h2 className="text-xl font-semibold mb-4">Ad History</h2>
             {ads.length === 0 ? (
-              <p className="text-muted-foreground">You haven't created any ads yet.</p>
+              <p className="text-muted-foreground">
+                You haven't created any ads yet.
+              </p>
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {ads.map((ad) => (
@@ -151,18 +195,23 @@ export default function HistoryPage() {
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle>{ad.brandName} - {ad.productName}</CardTitle>
+                          <CardTitle>
+                            {ad.brandName} - {ad.productName}
+                          </CardTitle>
                           <CardDescription>
-                            {ad.serviceType.replace("-", " ")} • Created on {new Date(ad.createdAt).toLocaleDateString()}
+                            {ad.serviceType.replace("-", " ")} • Created on{" "}
+                            {new Date(ad.createdAt).toLocaleDateString()}
                           </CardDescription>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          ad.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
-                            : ad.status === "FAILED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            ad.status === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : ad.status === "FAILED"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
                           {ad.status}
                         </span>
                       </div>
@@ -171,16 +220,25 @@ export default function HistoryPage() {
                       <div className="space-y-4">
                         <div>
                           <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">Progress</span>
-                            <span className="text-sm text-muted-foreground">{ad.progress}%</span>
+                            <span className="text-sm font-medium">
+                              Progress
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {ad.progress}%
+                            </span>
                           </div>
                           <Progress value={ad.progress} />
                         </div>
                         <div className="text-sm">
-                          <p>Estimated ready: {new Date(ad.estimatedReady).toLocaleDateString()}</p>
+                          <p>
+                            Estimated ready:{" "}
+                            {new Date(ad.estimatedReady).toLocaleDateString()}
+                          </p>
                         </div>
-                        {ad.status === "COMPLETED" && (
-                          <Button>
+                        {ad.status === "COMPLETED" && ad.completedFileUrl && (
+                          <Button
+                            onClick={() => handleDownload(ad.completedFileUrl)}
+                          >
                             <Download className="mr-2 h-4 w-4" />
                             Download Ad
                           </Button>
