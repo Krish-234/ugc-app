@@ -215,7 +215,7 @@ export function AdCreationForm({
             Fill in the details below to create your ad
           </p>
         </div>
-        <PointsBalance points={100} />
+        {/* <PointsBalance points={user} /> */}
       </div>
 
       <Form {...form}>

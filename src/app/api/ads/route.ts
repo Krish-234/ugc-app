@@ -1,53 +1,107 @@
 // app/api/ads/route.ts
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-const TEST_USER_ID = "test-user-1"
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Get session token from cookies
+    const sessionToken = request.cookies.get("session-token")?.value;
+
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Find valid session
+    const session = await prisma.session.findFirst({
+      where: {
+        sessionToken,
+        expires: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Get user ID from session
+    const userId = session.user.id;
+
+    // Get ads for the user
     const ads = await prisma.ad.findMany({
-      where: { userId: TEST_USER_ID },
+      where: {
+        userId: userId
+      },
       orderBy: { createdAt: 'desc' }
-    })
-    return NextResponse.json(ads)
+    });
+
+    return NextResponse.json(ads);
   } catch (error) {
-    console.error('Error fetching ads:', error)
+    console.error('Error fetching ads:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { formData, selectedScript, serviceType } = body
+    // Get session token from cookies
+    const sessionToken = request.cookies.get("session-token")?.value;
 
-    // Verify test user exists
-    console.log(TEST_USER_ID);
-    const user = await prisma.user.findUnique({
-      where: { id: TEST_USER_ID }
-    })
-
-    console.log(user);
-
-    if (!user) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: 'Test user not found' },
-        { status: 404 }
-      )
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
+    // Find valid session
+    const session = await prisma.session.findFirst({
+      where: {
+        sessionToken,
+        expires: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Get user ID from session
+    const userId = session.user.id;
+    const body = await request.json();
+    const { formData, selectedScript, serviceType } = body;
+
     // Calculate estimated ready date
-    const estimatedReady = new Date()
-    estimatedReady.setDate(estimatedReady.getDate() + 7)
+    const estimatedReady = new Date();
+    estimatedReady.setDate(estimatedReady.getDate() + 7);
 
     // Create ad
     const ad = await prisma.ad.create({
       data: {
-        userId: TEST_USER_ID,
+        userId: userId,
         serviceType,
         avatar: formData.avatar,
         brandName: formData.brandName,
@@ -65,20 +119,22 @@ export async function POST(request: Request) {
         estimatedReady,
         creditsUsed: 30
       }
-    })
+    });
 
     // Deduct credits
     await prisma.user.update({
-      where: { id: TEST_USER_ID },
+      where: { id: userId },
       data: { credits: { decrement: ad.creditsUsed } }
-    })
+    });
 
-    return NextResponse.json(ad)
+    return NextResponse.json(ad);
   } catch (error) {
-    console.error('Error creating ad:', error)
+    console.error('Error creating ad:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
-    )
+    );
+  } finally {
+    await prisma.$disconnect();
   }
 }
