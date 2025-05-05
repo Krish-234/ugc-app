@@ -1,5 +1,7 @@
 import { ServiceCard } from "@/components/dashboard/ServiceCard";
 import { PointsBalance } from "@/components/dashboard/PointsBalance";
+import { getSession } from "./actions";
+import { redirect } from "next/navigation";
 
 const services = [
   {
@@ -44,7 +46,14 @@ const services = [
   },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+
+  const user = await getSession();
+
+  if(!user) {
+    redirect("/login")
+  }
+
   return (
     <div>
       <div className="mb-8">

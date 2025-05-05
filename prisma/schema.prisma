@@ -14,60 +14,70 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?   @db.Text
-  credits       Int       @default(100)
-  role          String    @default("USER")
-  ads           Ad[]
+  id             String           @id @default(cuid())
+  name           String?
+  email          String?          @unique
+  emailVerified  DateTime?
+  password       String?          @db.Text
+  credits        Int              @default(100)
+  role           String           @default("USER")
+  ads            Ad[]
   editingRequest EditingRequest[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  sessions       Session[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
 model Ad {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  serviceType     String
-  avatar          String
-  brandName       String
-  productName     String
-  productImage    String
-  description     String
-  targetAudience  String
-  videoDuration   String
-  selectedTones   String[]
-  script          String?
-  websiteLink     String?
-  referenceLink   String?
-  status          String   @default("PENDING")
-  progress        Int      @default(0)
-  estimatedReady  DateTime
-  creditsUsed     Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  serviceType      String
+  avatar           String
+  brandName        String
+  productName      String
+  productImage     String
+  description      String
+  targetAudience   String
+  videoDuration    String
+  selectedTones    String[]
+  script           String?
+  websiteLink      String?
+  referenceLink    String?
+  status           String   @default("PENDING")
+  progress         Int      @default(0)
+  estimatedReady   DateTime
+  creditsUsed      Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   completedFileUrl String? // Add this line
 }
 
 model EditingRequest {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  projectName     String
-  rawFootageUrl   String
-  editingStyle    String
-  instructions    String
-  referenceLinks  String?
-  desiredLength   String
-  customLength    String?
-  status          String   @default("PENDING")
-  progress        Int      @default(0)
-  estimatedReady  DateTime
-  creditsUsed     Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  projectName      String
+  rawFootageUrl    String
+  editingStyle     String
+  instructions     String
+  referenceLinks   String?
+  desiredLength    String
+  customLength     String?
+  status           String   @default("PENDING")
+  progress         Int      @default(0)
+  estimatedReady   DateTime
+  creditsUsed      Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
   completedFileUrl String?
 }
