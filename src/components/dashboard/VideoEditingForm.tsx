@@ -69,30 +69,36 @@ export function VideoEditingForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          formData: values
+          formData: {
+            ...values,
+            referenceLinks: values.referenceLinks || null,
+            customLength: values.customLength || null
+          }
         }),
-      })
+        credentials: 'include' // Important for sending cookies
+      });
   
-      const data = await response.json()
+      const data = await response.json();
   
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit editing request')
+        throw new Error(data.error || 'Failed to submit editing request');
       }
   
       toast({
         title: 'Editing request submitted!',
         description: 'Your video is being processed and will be ready in 7 days.',
-      })
+      });
   
-      router.push('/dashboard/history')
+      router.push('/dashboard/history');
     } catch (error: any) {
+      console.error('Submission error:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
-      })
+      });
     }
-  }
+  };
   
   return (
     <div className="max-w-3xl mx-auto">

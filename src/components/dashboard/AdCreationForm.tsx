@@ -165,17 +165,26 @@ export function AdCreationForm({
         return;
       }
   
+      // Prepare the payload with proper defaults
+      const payload = {
+        formData: {
+          ...values,
+          productImage: values.productImage || null,
+          websiteLink: values.websiteLink || null,
+          referenceLink: values.referenceLink || null,  
+          videoDuration: values.videoDuration || '30', // Default duration
+        },
+        selectedScript,
+        serviceType: serviceType || 'STANDARD' // Default service type
+      };
+  
       const response = await fetch('/api/ads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          formData: values,
-          selectedScript,
-          serviceType
-        })
-      })
+        body: JSON.stringify(payload)
+      });
   
       const data = await response.json();
       
@@ -190,9 +199,10 @@ export function AdCreationForm({
   
       router.push("/dashboard/history");
     } catch (error: any) {
+      console.error('Submission error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     }

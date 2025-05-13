@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { signOut } from "next-auth/react";
+// import { signOut } from "next-auth/react";  
 import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -34,7 +34,7 @@ export function UserDropdown({ user }: { user?: any }) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
-        //   onClick={() => signOut()}
+          // onClick={() => signOut()}
           className="w-full cursor-pointer text-red-600 focus:text-red-600"
         >
           Sign out
